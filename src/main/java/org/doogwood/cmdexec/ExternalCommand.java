@@ -23,7 +23,7 @@ import org.apache.commons.exec.PumpStreamHandler;
  * 外部コマンドを表わすオブジェクト.
  * 同期もしくは非同期で当該コマンドを実行するためのメソッドを提供する。
  */
-public final class Command {
+public final class ExternalCommand {
 	/**
 	 * Apache Commons Execのコマンドライン・オブジェクト.
 	 */
@@ -32,7 +32,7 @@ public final class Command {
 	 * コンストラクタ.
 	 * 静的メソッドを介した初期化のみ許可する。
 	 */
-	private Command(final String commandLine) {
+	private ExternalCommand(final String commandLine) {
 		this.commandLine = CommandLine.parse(commandLine);
 	}
 	/**
@@ -105,7 +105,7 @@ public final class Command {
 		return service.submit(new Callable<Result>() {
 			@Override
 			public Result call() throws Exception {
-				return Command.this.execute(timeoutMillis);
+				return ExternalCommand.this.execute(timeoutMillis);
 			}
 		});
 	}
@@ -114,8 +114,8 @@ public final class Command {
 	 * @param commandLine 外部コマンド文字列
 	 * @return オブジェクト
 	 */
-	public static Command parse(final String commandLine) {
-		return new Command(commandLine);
+	public static ExternalCommand parse(final String commandLine) {
+		return new ExternalCommand(commandLine);
 	}
 	/**
 	 * 実行結果を表わすオブジェクト.

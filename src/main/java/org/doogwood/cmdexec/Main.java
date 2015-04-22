@@ -1,10 +1,10 @@
 package org.doogwood.cmdexec;
 
-import org.doogwood.cmdexec.Command.Result;
+import org.doogwood.cmdexec.ExternalCommand.Result;
 
 public final class Main {
 	public static void main(final String[] args) throws Exception {
-		final Command cmd = Command.parse("ls lll");
+		final ExternalCommand cmd = ExternalCommand.parse("ls lll");
 		final Result res = cmd.execute(3000);
 		// 終了コードを確認する
 		System.out.println("ExitCode: " + res.getExitCode());

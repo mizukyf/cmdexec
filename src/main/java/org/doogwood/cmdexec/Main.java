@@ -1,10 +1,23 @@
 package org.doogwood.cmdexec;
 
+import java.util.Arrays;
+
 import org.doogwood.cmdexec.ExternalCommand.Result;
 
 public final class Main {
 	public static void main(final String[] args) throws Exception {
-		final ExternalCommand cmd = ExternalCommand.parse("ls lll");
+		executeAndPrintLines("ls -la");
+		executeAndPrintLines("ls", "-la");
+		executeAndPrintLines("ls", "-la", "no_such_file.txt");
+		executeAndPrintLines("ping -c 2 localhost");
+		executeAndPrintLines("ping -c 5 localhost");
+	}
+	
+	private static void executeAndPrintLines(final String... commandAndArgs) {
+		System.out.println("Execute: " + Arrays.asList(commandAndArgs));
+		// コマンドをパースしてオブジェクト化
+		final ExternalCommand cmd = ExternalCommand.parse(commandAndArgs);
+		// タイムアウト時間に3000ミリ秒を指定しつつ実行
 		final Result res = cmd.execute(3000);
 		// 終了コードを確認する
 		System.out.println("ExitCode: " + res.getExitCode());
@@ -18,5 +31,6 @@ public final class Main {
 		for (final String line : res.getStderrLines()) {
 			System.out.println("2>  " + line);
 		}
+		System.out.println();
 	}
 }

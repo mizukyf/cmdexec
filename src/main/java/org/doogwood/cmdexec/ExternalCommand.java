@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -31,9 +32,16 @@ public final class ExternalCommand {
 	/**
 	 * コンストラクタ.
 	 * 静的メソッドを介した初期化のみ許可する。
+	 * @param args コマンドとその引数を表わす文字列配列
 	 */
-	private ExternalCommand(final String commandLine) {
-		this.commandLine = CommandLine.parse(commandLine);
+	private ExternalCommand(final String... args) {
+		if (args.length == 0) {
+			throw new IllegalArgumentException();
+		}
+		this.commandLine = CommandLine.parse(args[0]);
+		for (final String arg : Arrays.copyOfRange(args, 1, args.length)) {
+			this.commandLine.addArgument(arg);
+		}
 	}
 	/**
 	 * Apache Commons Execのコマンドライン・オブジェクトを返す.
@@ -116,6 +124,14 @@ public final class ExternalCommand {
 	 */
 	public static ExternalCommand parse(final String commandLine) {
 		return new ExternalCommand(commandLine);
+	}
+	/**
+	 * 外部コマンドとその引数を表わす文字列配列を受け取りオブジェクトを初期化する.
+	 * @param commandLine 外部コマンドとその引数の配列
+	 * @return オブジェクト
+	 */
+	public static ExternalCommand parse(final String... commandAndArgs) {
+		return new ExternalCommand(commandAndArgs);
 	}
 	/**
 	 * 実行結果を表わすオブジェクト.

@@ -1,6 +1,7 @@
 package org.doogwood.cmdexec;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -30,6 +31,10 @@ public final class ExternalCommand {
 	 */
 	private final CommandLine commandLine;
 	/**
+	 * コマンド実行時のカレント・ディレクトリ.
+	 */
+	private File workingDirectory = new File(".");
+	/**
 	 * コンストラクタ.
 	 * 静的メソッドを介した初期化のみ許可する。
 	 * @param args コマンドとその引数を表わす文字列配列
@@ -49,6 +54,32 @@ public final class ExternalCommand {
 	 */
 	public CommandLine getCommandLine() {
 		return commandLine;
+	}
+	/**
+	 * コマンド実行時のカレント・ディレクトリを返す.
+	 * @return コマンド実行時のカレント・ディレクトリ
+	 */
+	public File getWorkingDirectory() {
+		return workingDirectory;
+	}
+	/**
+	 * コマンド実行時のカレント・ディレクトリを設定する.
+	 * デフォルトでは{@code "."}が設定されている。
+	 * @param dir コマンド実行時のカレント・ディレクトリ
+	 */
+	public void setWorkingDirectory(final File dir) {
+		if (dir == null || !dir.isDirectory()) {
+			throw new IllegalArgumentException();
+		}
+		this.workingDirectory = dir;
+	}
+	/**
+	 * コマンド実行時のカレント・ディレクトリを設定する.
+	 * デフォルトでは{@code "."}が設定されている。
+	 * @param dirPath コマンド実行時のカレント・ディレクトリのパス
+	 */
+	public void setWorkingDirectory(final String dirPath) {
+		setWorkingDirectory(new File(dirPath));
 	}
 	/**
 	 * タイムアウト指定なしで同期実行する.
@@ -78,6 +109,8 @@ public final class ExternalCommand {
 		}
 		// 終了コードによるエラー判定をスキップするよう指定
 		exec.setExitValues(null);
+		// コマンド実行時のカレント・ディレクトリを設定
+		exec.setWorkingDirectory(workingDirectory);
 		// ストリームハンドラを設定
 		exec.setStreamHandler(streamHandler);
 		

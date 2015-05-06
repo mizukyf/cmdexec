@@ -117,8 +117,10 @@ public final class ExternalCommand {
 		try {
 			// 実行して終了コードを受け取る（同期実行する）
 			final int exitCode = exec.execute(commandLine);
+			out.close();
+			err.close();
 			// 実行結果を呼び出し元に返す
-			return new Result(exitCode, out.getInputStream(), err.getInputStream());
+			return new Result(exitCode, out, err);
 		} catch (final ExecuteException e) {
 			// 終了コード判定はスキップされるためこの例外がスローされるのは予期せぬ事態のみ
 			// よって非チェック例外でラップして再スローする
@@ -175,23 +177,23 @@ public final class ExternalCommand {
 		 */
 		private final int exitCode;
 		/**
-		 * 標準出力の内容にアクセスするための{@link InputStream}.
+		 * 標準出力の内容にアクセスするための{@link PipeOutputStream}.
 		 */
-		private final InputStream inputFromStdout;
+		private final PipeOutputStream stdout;
 		/**
-		 * 標準エラーの内容にアクセスするための{@link InputStream}.
+		 * 標準エラーの内容にアクセスするための{@link PipeOutputStream}.
 		 */
-		private final InputStream inputFromStderr;
+		private final PipeOutputStream stderr;
 		/**
 		 * コンストラクタ.
 		 * @param exitCode 終了コード
-		 * @param inputFromStdout 標準出力の内容にアクセスするための{@link InputStream}
-		 * @param inputFromStderr 標準エラーの内容にアクセスするための{@link InputStream}
+		 * @param stdout 標準出力の内容にアクセスするための{@link PipeOutputStream}
+		 * @param stderr 標準エラーの内容にアクセスするための{@link PipeOutputStream}
 		 */
-		private Result(final int exitCode, final InputStream inputFromStdout, final InputStream inputFromStderr) {
+		private Result(final int exitCode, final PipeOutputStream stdout, final PipeOutputStream stderr) {
 			this.exitCode = exitCode;
-			this.inputFromStdout = inputFromStdout;
-			this.inputFromStderr = inputFromStderr;
+			this.stdout = stdout;
+			this.stderr = stderr;
 		}
 		/**
 		 * 終了コードを返す.
@@ -205,28 +207,28 @@ public final class ExternalCommand {
 		 * @return {@link InputStream}
 		 */
 		public InputStream getStdout() {
-			return inputFromStdout;
+			return stdout.getInputStream();
 		}
 		/**
 		 * 標準エラーの内容にアクセスするための{@link InputStream}を返す.
 		 * @return {@link InputStream}
 		 */
 		public InputStream getStderr() {
-			return inputFromStderr;
+			return stderr.getInputStream();
 		}
 		/**
 		 * 標準出力の内容に行ごとにアクセスするための{@link Iterable}を返す.
 		 * @return {@link Iterable}
 		 */
 		public Iterable<String> getStdoutLines() {
-			return readLines(inputFromStdout);
+			return readLines(stdout.getInputStream());
 		}
 		/**
 		 * 標準エラーの内容に行ごとにアクセスするための{@link Iterable}を返す.
 		 * @return {@link Iterable}
 		 */
 		public Iterable<String> getStderrLines() {
-			return readLines(inputFromStderr);
+			return readLines(stderr.getInputStream());
 		}
 		/**
 		 * ストリームから文字列を読み出し行ごとのリストに変換する.

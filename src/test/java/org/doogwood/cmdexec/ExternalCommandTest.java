@@ -2,6 +2,8 @@ package org.doogwood.cmdexec;
 
 import static org.junit.Assert.*;
 
+import java.nio.charset.Charset;
+
 import org.apache.commons.lang3.SystemUtils;
 import org.doogwood.cmdexec.ExternalCommand.Result;
 
@@ -11,11 +13,21 @@ import org.junit.Test;
 
 public class ExternalCommandTest {
 	
+	private Charset outputCharset() {
+		if (SystemUtils.IS_OS_MAC_OSX) {
+			return Charset.forName("UTF-8");
+		} else if (SystemUtils.IS_OS_WINDOWS) {
+			return Charset.forName("MS932");
+		} else {
+			throw new RuntimeException();
+		}
+	}
+	
 	private String okLsCommand() {
 		if (SystemUtils.IS_OS_MAC_OSX) {
 			return "ls -la";
 		} else if (SystemUtils.IS_OS_WINDOWS) {
-			return "dir";
+			return "src\\test\\resources\\dir.bat";
 		} else {
 			throw new RuntimeException();
 		}
@@ -25,7 +37,7 @@ public class ExternalCommandTest {
 		if (SystemUtils.IS_OS_MAC_OSX) {
 			return "ls -la no_such_file.txt";
 		} else if (SystemUtils.IS_OS_WINDOWS) {
-			return "dir no_such_file.txt";
+			return "src\\test\\resources\\dir.bat no_such_file.txt";
 		} else {
 			throw new RuntimeException();
 		}
@@ -45,7 +57,7 @@ public class ExternalCommandTest {
 		if (SystemUtils.IS_OS_MAC_OSX) {
 			return "cp";
 		} else if (SystemUtils.IS_OS_WINDOWS) {
-			return "copy";
+			return "src\\test\\resources\\copy.bat";
 		} else {
 			throw new RuntimeException();
 		}
@@ -58,12 +70,12 @@ public class ExternalCommandTest {
 		System.out.println("ExitCode: " + res.getExitCode());
 		// コマンドの標準出力の内容から入力ストリームを生成してそこから再度内容を読み取る
 		System.out.println("Stdout: ");
-		for (final String line : res.getStdoutLines()) {
+		for (final String line : res.getStdoutLines(outputCharset())) {
 			System.out.println("1>  " + line);
 		}
 		// コマンドの標準エラーの内容から入力ストリームを生成してそこから再度内容を読み取る
 		System.out.println("Stderr: ");
-		for (final String line : res.getStderrLines()) {
+		for (final String line : res.getStderrLines(outputCharset())) {
 			System.out.println("2>  " + line);
 		}
 		System.out.println();
@@ -85,7 +97,6 @@ public class ExternalCommandTest {
 		final Result res = ExternalCommand.parse(cmd).execute();
 		printResult("executeTest01", cmd, res);
 		assertThat(res.getExitCode(), is(1));
-		assertThat(res.getStdoutLines().iterator().hasNext(), is(false));
 		assertThat(res.getStderrLines().iterator().hasNext(), is(true));
 	}
 
@@ -115,7 +126,5 @@ public class ExternalCommandTest {
 		final Result res = ExternalCommand.parse(cmd).execute();
 		printResult("executeTest04", cmd, res);
 		assertNotEquals(res.getExitCode(), 0);
-		assertThat(res.getStdoutLines().iterator().hasNext(), is(false));
-		assertThat(res.getStderrLines().iterator().hasNext(), is(true));
 	}
 }

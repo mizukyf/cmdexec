@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,29 +61,56 @@ public final class PipeOutputStream extends OutputStream {
 	
 	@Override
 	public void write(final int b) throws IOException {
+		// 閾値をチェック
 		if (byteCount < threshold) {
+			// 閾値未満である場合
+
+			// 書き込みバイト数をインクリメント
 			byteCount ++;
+			// バイト配列への書き込み処理を実施
 			writeIntoByteArray(b);
+			
 		} else {
+			// すでに閾値に到達している場合
+			
+			// 一時ファイルインスタンスへの参照をチェック
 			if (tempFile == null) {
+				// なければつくる
 				makeTempFile();
 			}
+			// 一時ファイルへの書き込み処理を実施
 			writeIntoTempFile(b);
 		}
 	}
-	
+	/**
+	 * 一時ファイルを作成する.
+	 * すでにバイト配列に書き込み済みのデータがあればこれを一時ファイルに書き出す。
+	 * @throws IOException 一時ファイル作成とデータ書き込みの最中にエラーが発生した場合
+	 */
 	private void makeTempFile() throws IOException {
+		// 一時ファイル・インスタンスを生成
 		tempFile = File.createTempFile("pipeOutputStream", ".tmp");
+		// JVMが終了するとき一時ファイルも削除するよう指示
 		tempFile.deleteOnExit();
+		// 一時ファイルへの書き込みようにストリームを生成
 		tempFileOutputStream = new FileOutputStream(tempFile);
+		// すでにバイト配列に書き込んでいたデータを移し替え
 		tempFileOutputStream.write(byteArrayOutputStream.toByteArray());
+		// ByteArrayOutputStreamのインスタンスへの参照を破棄
 		byteArrayOutputStream = null;
 	}
-	
+	/**
+	 * 一時ファイルに対してデータを書き込む.
+	 * @param b データ
+	 * @throws IOException データ書き込み中にエラーが発生した場合
+	 */
 	private void writeIntoTempFile(final int b) throws IOException {
 		tempFileOutputStream.write(b);
 	}
-	
+	/**
+	 * バイト配列に対してデータを書き込む.
+	 * @param b データ
+	 */
 	private void writeIntoByteArray(final int b) {
 		byteArrayOutputStream.write(b);
 	}
@@ -103,29 +131,46 @@ public final class PipeOutputStream extends OutputStream {
 	public boolean isReadyForReading() {
 		return closed;
 	}
-	
 	@Override
 	public final void close() throws IOException {
-		if (tempFileOutputStream != null) {
-			tempFileOutputStream.close();
+		try {
+			// 一時ファイルのFileOutputStreamへの参照をチェック
+			if (tempFileOutputStream != null) {
+				// もし参照があればともかくclose()を呼び出す
+				tempFileOutputStream.close();
+			}
+		} finally {
+			// FileOutputStreamの事後処理の結果にかかわらず
+			// 当該インスタンスへの参照は破棄
 			tempFileOutputStream = null;
+			// PipeOutputStreamとしてはクローズ済みとしてマークする
+			closed = true;
 		}
-		closed = true;
 	}
-	
 	/**
 	 * 入力ストリームを生成して返す.
 	 * @return 入力ストリーム
-	 * @throws IOException 
 	 */
-	public InputStream getInputStream() throws IOException {
+	public InputStream getInputStream() {
+		// 読み込み準備ができているかチェック
 		if (!isReadyForReading()) {
+			// できていない場合は実行時例外をスロー
 			throw new IllegalStateException();
 		}
+		// 一時ファイルの有無をチェック
 		if (tempFile == null) {
+			// 一時ファイルがない＝バイト配列でデータを保持している
+			// バイト配列からByteArrayInputStreamを生成して返す
 			return new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
 		} else {
-			return new FileInputStream(tempFile);
+			try {
+				// 一時ファイルからFileInputStreamを生成して返す
+				return new FileInputStream(tempFile);
+			} catch (final FileNotFoundException e) {
+				// 一時ファイルが見つからない＝予期せぬエラー
+				// 実行時例外をスローする
+				throw new IllegalStateException(e);
+			}
 		}
 	}
 }

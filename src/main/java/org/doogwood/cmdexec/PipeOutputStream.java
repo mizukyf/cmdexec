@@ -60,8 +60,8 @@ public final class PipeOutputStream extends OutputStream {
 	
 	@Override
 	public void write(final int b) throws IOException {
-		byteCount ++;
-		if (byteCount <= threshold) {
+		if (byteCount < threshold) {
+			byteCount ++;
 			writeIntoByteArray(b);
 		} else {
 			if (tempFile == null) {

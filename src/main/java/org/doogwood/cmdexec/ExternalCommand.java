@@ -218,25 +218,43 @@ public final class ExternalCommand {
 		}
 		/**
 		 * 標準出力の内容に行ごとにアクセスするための{@link Iterable}を返す.
+		 * キャラクターセットにはJVMのデフォルト・キャラクターセットを使用する。
 		 * @return {@link Iterable}
 		 */
 		public Iterable<String> getStdoutLines() {
-			return readLines(stdout.getInputStream());
+			return getStdoutLines(Charset.defaultCharset());
+		}
+		/**
+		 * 標準出力の内容に行ごとにアクセスするための{@link Iterable}を返す.
+		 * @param charset キャラクターセット
+		 * @return {@link Iterable}
+		 */
+		public Iterable<String> getStdoutLines(final Charset charset) {
+			return readLines(stdout.getInputStream(), charset);
 		}
 		/**
 		 * 標準エラーの内容に行ごとにアクセスするための{@link Iterable}を返す.
+		 * キャラクターセットにはJVMのデフォルト・キャラクターセットを使用する。
 		 * @return {@link Iterable}
 		 */
 		public Iterable<String> getStderrLines() {
-			return readLines(stderr.getInputStream());
+			return getStderrLines(Charset.defaultCharset());
+		}
+		/**
+		 * 標準エラーの内容に行ごとにアクセスするための{@link Iterable}を返す.
+		 * @param charset キャラクターセット
+		 * @return {@link Iterable}
+		 */
+		public Iterable<String> getStderrLines(final Charset charset) {
+			return readLines(stderr.getInputStream(), charset);
 		}
 		/**
 		 * ストリームから文字列を読み出し行ごとのリストに変換する.
 		 * @param in ストリーム
 		 * @return リスト
 		 */
-		private List<String> readLines(final InputStream in) {
-			final BufferedReader br = new BufferedReader(new InputStreamReader(in, Charset.defaultCharset()));
+		private List<String> readLines(final InputStream in, final Charset cs) {
+			final BufferedReader br = new BufferedReader(new InputStreamReader(in, cs));
 			final List<String> result = new ArrayList<String>();
 			String line = null;
 			try {

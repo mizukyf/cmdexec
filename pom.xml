@@ -2,14 +2,15 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.doogwood.cmdexec</groupId>
-	<artifactId>org.doogwood.cmdexec</artifactId>
+	<groupId>org.doogwood</groupId>
+	<artifactId>doogwood-cmdexec</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>CmdExec</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<org.doogwood.base.javaVersion>1.6</org.doogwood.base.javaVersion>
 	</properties>
 
 	<dependencies>
@@ -38,8 +39,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.2</version>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>${org.doogwood.base.javaVersion}</source>
+					<target>${org.doogwood.base.javaVersion}</target>
 				</configuration>
 			</plugin>
 		</plugins>
